@@ -3,7 +3,7 @@ const cors = require("cors");
 const app = express();
 require('dotenv').config();
 const port = process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 // middleware
 app.use(cors());
@@ -30,13 +30,30 @@ async function run() {
 
     app.get("/bykes", async(req, res) => {
         const bykes = await bykeCollection.find().toArray();
-        res.send(bykes);
+        res.send(bykes); 
+    });
+
+    app.get("/bykes", async(req, res) => {
+        const userEmail = req.query.email;
+        const query = userEmail? { created_by: userEmail } : {};
+        const options = {
+          sort: { createdAt: -1 }
+        };
+        const carts = await bykeCollection.find(query, options).toArray();
+        res.send(carts)
     });
 
     app.post("/bykes", async(req, res) => {
         const item = req.body;
         const result = await bykeCollection.insertOne(item);
         res.send(result);
+    });
+
+    app.delete("/bykes/:id", async(req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await bykeCollection.deleteOne(query);
+      res.send(result);
     });
 
     // Send a ping to confirm a successful connection
